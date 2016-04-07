@@ -1,17 +1,13 @@
-import com.google.common.collect.ImmutableSortedSet;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.TopicEvent;
-import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class MultiChannel {
   private static Logger LOG = LoggerFactory.getLogger(MultiChannel.class);
@@ -22,14 +18,14 @@ public class MultiChannel {
 
 
   public MultiChannel() {
-
     final String botName = createBotName("AS_");
-    final String channel = "#moviegods";
-    final String server = "irc.abjects.net";
-    final Set<String> additionalChannels = new HashSet<>();
 
-    PircBotX bot = createBot(botName, channel, server);
-    bot.getConfiguration().getListenerManager().addListener(new ListenerAdapter() {
+    Configuration.Builder builder = new Configuration.Builder();
+    builder.addServer("irc.abjects.net");
+    builder.setName(botName);
+    builder.addAutoJoinChannel("#moviegods");
+    builder.addAutoJoinChannel("#mg-chat");
+    builder.addListener(new ListenerAdapter() {
 
       @Override
       public void onJoin(JoinEvent event) throws Exception {
@@ -45,6 +41,7 @@ public class MultiChannel {
         LOG.info("TopicEvent; {} ({})", name, topic);
       }
     });
+    PircBotX bot = new PircBotX(builder.buildConfiguration());
 
     try {
       bot.startBot();
@@ -53,16 +50,6 @@ public class MultiChannel {
     } catch(IrcException e) {
       e.printStackTrace();
     }
-  }
-
-  private PircBotX createBot(String botName, String channel, String server) {
-    Configuration.Builder builder = new Configuration.Builder();
-    builder.addServer(server);
-    builder.setName(botName);
-    builder.addAutoJoinChannel(channel);
-    builder.addAutoJoinChannel("#mg-chat");
-
-    return new PircBotX(builder.buildConfiguration());
   }
 
   private String createBotName(String prefix) {
